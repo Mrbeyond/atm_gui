@@ -67,21 +67,21 @@ class Interface:
       Default screen message for users before any activity
     """
     self.welSty = Style()
-    self.welSty.configure("F.TFrame", background="cyan", font=('Helvetica', 10, 'bold'))
+    self.welSty.configure("F.TFrame", font=('Helvetica', 10, 'bold'))
     self.initFrame = Frame(self.screen, style="F.TFrame")
-    self.initFrame.grid(row=0, column=0,rowspan=4, columnspan=9, sticky='nsew')
+    self.initFrame.grid(sticky='nsew')
 
     self.welSty = Style()
     self.welSty.configure("W.TLabel",  font=('Helvetica', 15, 'bold'))
 
-    self.initMessage = Label(self.initFrame, anchor=CENTER, text=" You are welcome please choose an option to continue ", style="W.TLabel")
-    self.initMessage.grid(row=0, column=0, columnspan=10, ipady=8, sticky='nsew')
+    Label(self.initFrame, text="Please choose an option to continue", style="W.TLabel",\
+      anchor=CENTER).grid( row=0, column=0, padx=(60,0), ipady=8, sticky='nsew')
 
     self.initUpLabel = Label(self.initFrame, text=" Sign Up ", style="W.TLabel")
-    self.initUpLabel.grid(row=1, column=0, ipady=20, sticky='nsew')
+    self.initUpLabel.grid(row=1, column=0, ipady=20,  sticky='nsew')
 
     self.initLoginLabel = Label(self.initFrame, text=" Login ", anchor=E  , style="W.TLabel")
-    self.initLoginLabel.grid(row=1, column=9, sticky='nsew')
+    self.initLoginLabel.grid(row=1, column=1,  sticky='nsew')
 
   def rOne(self):
     pass
@@ -135,16 +135,22 @@ class Interface:
     """
     self.loginStyle = Style()
     self.loginStyle.configure("Log.TLabel", font=('Helvetica', 13, 'bold'))
-    self.loginFrame.grid(row=0, column=0,rowspan=4, columnspan=9, sticky="nsew")
+    self.loginFrame.grid(sticky="nsew")
 
-    Label(self.loginFrame, text="First name", style="Log.TLabel").grid(row=0, column=0, ipady=15)
+    Label(self.loginFrame, text="First name", style="Log.TLabel")\
+      .grid(row=0, column=0,  ipady=15)
     self.loginNameEntry = Entry(self.loginFrame)
-    self.loginNameEntry.grid(row=0, column=6, columnspan=3,sticky="ew")
-    Label(self.loginFrame, text="Password", style="Log.TLabel").grid(row=1, column=0, ipady=15)
+    self.loginNameEntry.grid(row=0, column=1, sticky="ew")
+
+    Label(self.loginFrame, text="Password", style="Log.TLabel")\
+      .grid(row=1, column=0, ipady=15)
     self.loginPasswordEntry = Entry(self.loginFrame)
-    self.loginPasswordEntry.grid(row=1, column=6, columnspan=3,sticky="ew")
-    Label(self.loginFrame, text="Back", style="Log.TLabel").grid(row=2, column=0)
-    Label(self.loginFrame, text="Continue", style="Log.TLabel", anchor=E).grid(row=2, column=9, ipady=10)
+    self.loginPasswordEntry.grid(row=1, column=1, sticky="ew")
+
+    Label(self.loginFrame, text="Back", style="Log.TLabel")\
+      .grid(row=2, column=0, sticky='nsew')
+    Label(self.loginFrame, text="Continue", style="Log.TLabel", anchor=E)\
+      .grid(row=2, column=1, ipady=10,sticky='nsew')
 
   def signupPart(self): 
     """
@@ -154,28 +160,29 @@ class Interface:
     self.loginStyle = Style()
     self.loginStyle.configure("Log.TLabel", font=('Helvetica', 13, 'bold'))
 
-    self.signupFrame.grid(row=0, column=0,rowspan=4, columnspan=9, sticky="nsew")
+    self.signupFrame.grid(sticky="nsew")
 
     Label(self.signupFrame, text="First name", style="Log.TLabel").grid(row=0, column=0, ipady=15)
     self.signupFName = Entry(self.signupFrame)
-    self.signupFName.grid(row=0, column=6, columnspan=3,sticky="ew")
+    self.signupFName.grid(row=0, column=1, sticky="ew")
 
     Label(self.signupFrame, text="Last name", style="Log.TLabel").grid(row=1, column=0, ipady=15)
     self.signupLName = Entry(self.signupFrame)
-    self.signupLName.grid(row=1, column=6, columnspan=3,sticky="ew")
+    self.signupLName.grid(row=1, column=1, sticky="ew")
 
     Label(self.signupFrame, text="Password", style="Log.TLabel").grid(row=2, column=0, ipady=15)
     self.loginPasswordEntry = Entry(self.signupFrame)
-    self.loginPasswordEntry.grid(row=2, column=6, columnspan=3,sticky="ew")
+    self.loginPasswordEntry.grid(row=2, column=1,sticky="ew")
 
     Label(self.signupFrame, text="Back", style="Log.TLabel").grid(row=3, column=0)
-    Label(self.signupFrame, text="Continue", style="Log.TLabel", anchor=E).grid(row=3, column=9, ipady=10)
+    Label(self.signupFrame, text="Continue", style="Log.TLabel", anchor=E)\
+      .grid(row=3, column=1, ipady=10)
 
   def start(self):
     self.leftButtonsSection()
     self.rightButtonsSection()
     self.welcomePart()
-
+    # self.main.geometry("500x500")
     self.main.mainloop()
 
 
