@@ -4,7 +4,7 @@ class Validators:
   def __init__(self):
     pass
 
-  def names(self, data):
+  def passnames(data):
     """
       The name entitie to verified with regex
     """
@@ -13,8 +13,9 @@ class Validators:
       return False
     else:
       return col.group()
+      # return True
 
-  def passkeys(self, data):
+  def passkeys(data):
     """
       Password verified with regex
     """
@@ -23,3 +24,5 @@ class Validators:
       return False
     else:
       return key.group()
+
+

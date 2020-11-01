@@ -1,6 +1,8 @@
 from tkinter import *
 from tkinter.ttk import *
 from tkinter.font import *
+from validators import Validators as vld
+from BankingBaisc import BankingBasic as api
 from PIL import Image, ImageTk
 class Interface:
   def __init__(self):
@@ -14,10 +16,25 @@ class Interface:
 
     self.numKeys = Frame(self.main)
     self.stage = "default"
+    self.lName = StringVar()
+    self.lKey = StringVar()
+    self.isLNError = True
+    self.isLKError = True
+    self.ufName = StringVar()
+    self.ulName= StringVar()
+    self.uKey = StringVar()
+    self.isUFNError = True
+    self.isULNError = True
+    self.isUKError = True
     
-    self.screen = Frame(self.main)
+    self.ScreenSty = Style()
+    self.ScreenSty.configure("SCR.TFrame", bd=100, relief="sunken")
+    self.screen = Frame(self.main, style="SCR.TFrame")
     self.screen.grid(row=0, column=1, rowspan=4, columnspan=9, sticky="nsew")
    
+    self.loginStyle = Style()
+    self.loginStyle.configure("Error.TLabel", foreground="red", font=('Helvetica', 8, 'bold'))
+    
 
 
 
@@ -114,6 +131,7 @@ class Interface:
 
   def lThree(self):
     if( self.stage == "login"):
+      print(self.lName.get())
       self.loginFrame.grid_remove()
       self.welcomePart()
       self.stage = "default"
@@ -125,6 +143,7 @@ class Interface:
       self.signupFrame.grid_remove()
       self.welcomePart()
       self.stage = "default"
+
     else:
       pass
 
@@ -137,20 +156,142 @@ class Interface:
     self.loginStyle.configure("Log.TLabel", font=('Helvetica', 13, 'bold'))
     self.loginFrame.grid(sticky="nsew")
 
-    Label(self.loginFrame, text="First name", style="Log.TLabel")\
+    Label(self.loginFrame, text="First name",  style="Log.TLabel")\
       .grid(row=0, column=0,  ipady=15)
-    self.loginNameEntry = Entry(self.loginFrame)
+    self.loginNameEntry = Entry(self.loginFrame, textvariable=self.lName)
     self.loginNameEntry.grid(row=0, column=1, sticky="ew")
+    self.loginNameEntry.focus_set()
+    self.loginNameEntry.bind("<FocusOut>", self.loginNameValidator)
 
-    Label(self.loginFrame, text="Password", style="Log.TLabel")\
-      .grid(row=1, column=0, ipady=15)
-    self.loginPasswordEntry = Entry(self.loginFrame)
+    Label(self.loginFrame, text="Password", style="Log.TLabel").grid(row=1, column=0, ipady=15)
+    self.loginPasswordEntry = Entry(self.loginFrame, textvariable=self.lKey)
     self.loginPasswordEntry.grid(row=1, column=1, sticky="ew")
+    self.loginPasswordEntry.bind("<FocusOut>", self.loginKeyValidator )
 
     Label(self.loginFrame, text="Back", style="Log.TLabel")\
-      .grid(row=2, column=0, sticky='nsew')
+      .grid(row=3, column=0, sticky='nsew')
     Label(self.loginFrame, text="Continue", style="Log.TLabel", anchor=E)\
-      .grid(row=2, column=1, ipady=10,sticky='nsew')
+      .grid(row=3, column=1, ipady=10,sticky='nsew')
+    # self.loginValidator()
+
+  def loginNameValidator(self, event):
+    """"
+      The validator method for login name
+    """   
+    # This validator value holder for login name  
+    valid = vld.passnames(self.lName.get())
+   
+    if not(valid):
+      self.isLNError = True
+      print(3, self.isLNError)
+      self.loginErrorMessage = Label(self.loginFrame, style="Error.TLabel")
+      self.loginErrorMessage.grid(row=2, column=0, columnspan=2)
+      self.loginErrorMessage['text']= "Minimum of three and only characters are are required for name"
+    else:
+      print(4)
+      try:
+        if (self.isLNError):
+          self.loginErrorMessage.grid_remove()
+          self.isLNError = False
+      except:
+        # print(NameError)
+        pass
+
+
+  def loginKeyValidator(self, event):
+    """"
+      The validator method for login passkey
+    """
+    print(self.isLNError)
+    if not (self.isLNError):     
+      valid = vld.passkeys(self.lKey.get())
+      if not(valid):
+        print(1)
+        self.loginErrorMessage = Label(self.loginFrame, style="Error.TLabel")
+        self.loginErrorMessage.grid(row=2, column=0, columnspan=2)
+        self.loginErrorMessage['text']= "Minimum of seven is required, Alphanumerics and Undescores are allowed"
+        self.isLKError = True
+      else:
+        print(2)
+        try:
+          if (self.isLKError):
+            self.loginErrorMessage.grid_remove()
+            self.isLKError = False
+        except :
+          pass
+
+  def submitLogin(self):
+    if(not isLNError and not isLKError):
+      pass
+
+
+  def signupFNameValidator(self, event):
+    """"
+      The validator method for signup first name
+    """
+    valid = vld.passnames(self.ufName.get()) 
+    print("valid is ", valid)  
+    if not(valid):
+      self.isUFNError = True
+      print(1, self.isUFNError)
+      self.signupError = Label(self.signupFrame, style="Error.TLabel")
+      self.signupError.grid(row=3, column=0, columnspan=2)
+      self.signupError['text']= "Minimum of three and only characters are are required for name"
+    else:
+      print(2)
+      try:
+        if (self.isUFNError):
+          self.signupError.grid_remove()
+          self.isUFNError = False 
+      except:
+        # print(NameError)
+        pass
+
+  def signupLNameValidator(self, event):
+    """"
+      The validator method for signup last name
+    """
+    print(self.isUFNError)
+    if(not self.isUFNError):
+      valid = vld.passnames(self.ulName.get())
+      print("valid is ", valid)
+      if not(valid):
+        self.isULNError = True
+        print(3, self.isULNError)
+        self.signupError = Label(self.signupFrame, style="Error.TLabel")
+        self.signupError.grid(row=3, column=0, columnspan=2)
+        self.signupError['text']= "Minimum of three and only characters are are required for name"
+      else:
+        print(4)
+        try:
+          if (self.isULNError):
+            self.signupError.grid_remove()
+            self.isULNError = False
+        except:
+          # print(NameError)
+          pass
+
+  def signupKeyValidator(self, event):
+    """"
+      The validator method for signup password
+    """
+    print(self.isLNError, self.isULNError)
+    if (not self.isUFNError and not self.isULNError):     
+      valid = vld.passkeys(self.uKey.get())
+      if not(valid):
+        print(5)
+        self.signupError = Label(self.signupFrame, style="Error.TLabel")
+        self.signupError.grid(row=3, column=0, columnspan=2)
+        self.signupError['text']= "Minimum of seven is required, Alphanumerics and Undescores are allowed"
+        self.isUKError = True
+      else:
+        print(6)
+        try:
+          if (self.isUKError):
+            self.signupError.grid_remove()
+            self.isUKError = False
+        except :
+          pass
 
   def signupPart(self): 
     """
@@ -163,20 +304,23 @@ class Interface:
     self.signupFrame.grid(sticky="nsew")
 
     Label(self.signupFrame, text="First name", style="Log.TLabel").grid(row=0, column=0, ipady=15)
-    self.signupFName = Entry(self.signupFrame)
+    self.signupFName = Entry(self.signupFrame, textvariable=self.ufName)
     self.signupFName.grid(row=0, column=1, sticky="ew")
+    self.signupFName.bind('<FocusOut>', self.signupFNameValidator)
 
     Label(self.signupFrame, text="Last name", style="Log.TLabel").grid(row=1, column=0, ipady=15)
-    self.signupLName = Entry(self.signupFrame)
+    self.signupLName = Entry(self.signupFrame, textvariable=self.ulName)
     self.signupLName.grid(row=1, column=1, sticky="ew")
+    self.signupLName.bind('<FocusOut>', self.signupLNameValidator)
 
     Label(self.signupFrame, text="Password", style="Log.TLabel").grid(row=2, column=0, ipady=15)
-    self.loginPasswordEntry = Entry(self.signupFrame)
-    self.loginPasswordEntry.grid(row=2, column=1,sticky="ew")
+    self.signupKey = Entry(self.signupFrame, textvariable=self.uKey)
+    self.signupKey.grid(row=2, column=1,sticky="ew")
+    self.signupKey.bind('<FocusOut>', self.signupKeyValidator)
 
-    Label(self.signupFrame, text="Back", style="Log.TLabel").grid(row=3, column=0)
+    Label(self.signupFrame, text="Back", style="Log.TLabel").grid(row=4, column=0)
     Label(self.signupFrame, text="Continue", style="Log.TLabel", anchor=E)\
-      .grid(row=3, column=1, ipady=10)
+      .grid(row=4, column=1, ipady=10)
 
   def start(self):
     self.leftButtonsSection()
