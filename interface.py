@@ -10,6 +10,9 @@ class Interface:
     self.image = Image.open("crown.jpg")
     self.image = self.image.resize((20,20), Image.ANTIALIAS)
     self.photo = ImageTk.PhotoImage(self.image) 
+
+    self.customer = None
+    self.accountNum = None
     # self.style = Style()
     # self.style.configure("BW.TLabel", foreground="white", background="blue")
     # self.but = Button(self.main,text="button", image=self.photo, compound=RIGHT, style="BW.TLabel")
@@ -73,7 +76,7 @@ class Interface:
     self.rk1.grid(row=0, column=0, pady=4, ipady=10);
     self.rk2 = Button(self.rKeys, text="<", style="R.TButton", command=self.rTwo)
     self.rk2.grid(row=1, column=0, pady=4, ipady=10);
-    self.rk3 = Button(self.rKeys, text="<", style="R.TButton",)
+    self.rk3 = Button(self.rKeys, text="<", style="R.TButton",  command= self.rThree)
     self.rk3.grid(row=2, column=0, pady=4, ipady=10);
     self.rk4 = Button(self.rKeys, text="<", style="R.TButton", command=self.rFour)
     self.rk4.grid(row=3, column=0, pady=4, ipady=10);
@@ -111,11 +114,13 @@ class Interface:
     else:
       pass
   
-  def rTThree(self):
-    pass
+  def rThree(self):
+    if(self.stage == "login"):
+      self.submitLogin()
 
   def rFour(self):
-    pass
+    if(self.stage == "signup"):
+      self.submitSignup()
 
   def lOne(self):
     pass
@@ -192,7 +197,7 @@ class Interface:
       try:
         if (self.isLNError):
           self.loginErrorMessage.grid_remove()
-          self.isLNError = False
+        self.isLNError = False
       except:
         # print(NameError)
         pass
@@ -221,8 +226,21 @@ class Interface:
           pass
 
   def submitLogin(self):
-    if(not isLNError and not isLKError):
-      pass
+    print(self.isLNError , self.isLKError, "here")
+    if(vld.passkeys(self.lKey.get()) != False and vld.passnames(self.lName.get()) != False):
+      data = (self.lName.get(), self.lKey.get())
+      attempLogin = api().login(data)
+      print("attemp is ", attempLogin)
+      if(not attempLogin):
+        self.loginErrorMessage = Label(self.loginFrame, style="Error.TLabel")
+        self.loginErrorMessage.grid(row=2, column=0, columnspan=2)
+        self.loginErrorMessage['text']= "No customer found"
+      else:
+        self.customer = attempLogin        
+        self.loginFrame.grid_remove()
+        self.operationsPart()        
+        self.stage = "operations"
+
 
 
   def signupFNameValidator(self, event):
@@ -240,18 +258,20 @@ class Interface:
     else:
       print(2)
       try:
+        self.isUFNError = False 
         if (self.isUFNError):
           self.signupError.grid_remove()
-          self.isUFNError = False 
       except:
         # print(NameError)
         pass
+      finally:
+        print(self.isUFNError, "inside")
 
   def signupLNameValidator(self, event):
     """"
       The validator method for signup last name
     """
-    print(self.isUFNError)
+    print(self.isUFNError, "is first")
     if(not self.isUFNError):
       valid = vld.passnames(self.ulName.get())
       print("valid is ", valid)
@@ -275,7 +295,7 @@ class Interface:
     """"
       The validator method for signup password
     """
-    print(self.isLNError, self.isULNError)
+    print(self.isUFNError, self.isULNError)
     if (not self.isUFNError and not self.isULNError):     
       valid = vld.passkeys(self.uKey.get())
       if not(valid):
@@ -292,6 +312,26 @@ class Interface:
             self.isUKError = False
         except :
           pass
+
+  def submitSignup(self):
+    if(vld.passkeys(self.uKey.get()) != False 
+    and vld.passnames(self.ufName.get()) != False 
+    and vld.passnames(self.ulName.get()) != False):
+      print("up up")
+
+      data = (self.ufName.get(), self.ulName.get(), self.lKey.get())
+      attempSignup = api().registerCustomer(data, 2)
+      print("attempt register is ", attempSignup)
+      if(not attempSignup):
+        self.signupError = Label(self.signupFrame, style="Error.TLabel")
+        self.signupError.grid(row=3, column=0, columnspan=2)
+        self.signupError['text']= "Oop, something went wrong, please try again"
+      else:
+        self.customer = data
+        self.accountNum = attempSignup        
+        self.signupFrame.grid_remove()
+        self.operationsPart()      
+        self.stage = "operations"
 
   def signupPart(self): 
     """
@@ -321,6 +361,18 @@ class Interface:
     Label(self.signupFrame, text="Back", style="Log.TLabel").grid(row=4, column=0)
     Label(self.signupFrame, text="Continue", style="Log.TLabel", anchor=E)\
       .grid(row=4, column=1, ipady=10)
+
+  def operationsPart(self):
+    self.welSty = Style()
+    self.welSty.configure("F.TFrame", font=('Helvetica', 10, 'bold'))
+    self.transFrame.grid(sticky='nsew')
+    Label(self.transFrame, text="Cash Withdrawal").grid(row=0,column=0)
+    Label(self.transFrame, text="Transfer").grid(row=0,column=1)
+    Label(self.transFrame, text="Transfer").grid(row=1,column=0)
+    Label(self.transFrame, text="Balance inquiry").grid(row=1,column=1)
+    Label(self.transFrame, text="Bill yayment").grid(row=2,column=0)
+    Label(self.transFrame, text="Donation/Others").grid(row=2,column=1)
+    
 
   def start(self):
     self.leftButtonsSection()

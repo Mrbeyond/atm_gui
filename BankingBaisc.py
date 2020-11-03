@@ -133,10 +133,11 @@ class BankingBasic:
             cursor.execute("INSERT INTO `accounts` (`type`, `customer`, `accountNumber` ) VALUES (%s, %s, %s) ", (2, customerId, accNum ))
             self.tabs.commit()
             print(f"\n \33[4m\33[32m Welcome {data[0]}! You have successfully registered and your account number is {accNum} \33[0m \n")
-            return customerId
+            return accNum
         except DB.Error as err:
             print(f"\n \33[31m There is error and the error is: \n {err} \33[0m \n")
             self.tabs.rollback()
+            return False
         finally:
             pass
             
@@ -152,10 +153,14 @@ class BankingBasic:
             cursor.execute("SELECT * FROM `customers` WHERE `firstName` = %s AND `password` = %s  LIMIT 1", (data))
             allRecords =cursor.fetchall()
             print(f'\n\33[34m all is \n {allRecords} \33[0m\n')
-            return allRecords
+            if(len(allRecords) > 0):
+              return allRecords[0]
+            else:
+              return False
         except DB.Error as err:
             print(f"There is error and the error is \n {err}")
             self.tabs.rollback()
+            return False
         finally:
             
             #closing database connection.
@@ -169,7 +174,7 @@ uses = ('beyond', '12345678')
 # BankingBasic().newDatabase("atm_gui")
 # BankingBasic().registerCustomer( mockCustomer,2)
 # BankingBasic().postTransaction((1,0, "Deposit", "Creditted by 5000 ", 5000))
-BankingBasic().login(uses)
+# print(BankingBasic().login(uses))
 # BankingBasic().login(None)
 
 
