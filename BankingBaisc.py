@@ -69,7 +69,7 @@ class BankingBasic:
                     `customer` INT NOT NULL, \
                     `type` INT NOT NULL, \
                     `accountNumber` VARCHAR(12) NOT NULL,\
-                    `balance` INT DEFAULT 0,\
+                    `balance` INT DEFAULT 20000,\
                  `date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP) \
                 ").substitute(table=tbName))
         except DB.Error as err:
@@ -169,12 +169,50 @@ class BankingBasic:
                 # self.tabs.close()
                 print("\n\33[33m connection is closed \33[0m\n")
 
+    def withdraw(self, data):
+        try:
+            cursor = self.tabs.cursor()
+            cursor. execute("SELECT `balance` FROM `accounts` WHERE `customer` = %s ", (data[0],))
+            
+            result = cursor.fetchall()
+            if(len(result) > 0):
+                current = result[0][0]
+
+                if(current - data[1] < 0):
+                    print('insufficient_balance')
+                    return 'insufficient_balance'
+                else:
+                    balance = current - data[1]
+                    cursor.execute("UPDATE `accounts` SET `balance` = %s WHERE `customer`= %s", (balance, data[0]))
+                    
+                    print(cursor , 'done')
+            else:
+                print('wrong')
+                return False
+            # allRecords =cursor.fetchall()
+            # print(f'\n\33[34m all is \n {allRecords} \33[0m\n')
+            # if(len(allRecords) > 0):
+            #   return allRecords[0]
+            # else:
+            #   return False
+        except DB.Error as err:
+            print(f"There is error and the error is \n {err}")
+            self.tabs.rollback()
+            return False
+        finally:            
+            #closing database connection.
+            if(self.tabs.is_connected()):
+                cursor.close()
+                # self.tabs.close()
+                print("\n\33[33m connection is closed \33[0m\n")
+
+
 mockCustomer = ('beyond', 'Beyond', '12345678')
 uses = ('beyond', '12345678')
 # BankingBasic().newDatabase("atm_gui")
 # BankingBasic().registerCustomer( mockCustomer,2)
 # BankingBasic().postTransaction((1,0, "Deposit", "Creditted by 5000 ", 5000))
 # print(BankingBasic().login(uses))
-# BankingBasic().login(None)
+BankingBasic().withdraw((1,500))
 
 

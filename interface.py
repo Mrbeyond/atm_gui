@@ -26,6 +26,7 @@ class Interface:
     self.ufName = StringVar()
     self.ulName= StringVar()
     self.uKey = StringVar()
+    self.postOperationMessage = StringVar()
     self.isUFNError = True
     self.isULNError = True
     self.isUKError = True
@@ -111,6 +112,11 @@ class Interface:
       self.initFrame.grid_remove()
       self.loginPart()
       self.stage = "login"
+    elif(self.stage == "newcustomer"):
+      self.newCustomerFrame.grid_remove()
+      self.operationsPart()
+      self.stage = 'operations'
+
     else:
       pass
   
@@ -123,13 +129,24 @@ class Interface:
       self.submitSignup()
 
   def lOne(self):
-    pass
+    if(self.stage == 'operations'):
+      self.transFrame.grid_remove()
+      self.withdrawPart()
+      self.stage="mainwithdraw"
+    elif(self.stage=='mainwithdraw'):
+      pass
+    else:
+      pass
 
   def lTwo(self):
     if(self.stage == "default" and self.stage != "signup"):
       self.initFrame.grid_remove()
       self.signupPart()
       self.stage = "signup"
+    elif(self.stage == "newcustomer"):
+      self.newCustomerFrame.grid_remove()
+      self.welcomePart()
+      self.stage = 'default'
     else:
       pass
     
@@ -319,7 +336,7 @@ class Interface:
     and vld.passnames(self.ulName.get()) != False):
       print("up up")
 
-      data = (self.ufName.get(), self.ulName.get(), self.lKey.get())
+      data = (self.ufName.get(), self.ulName.get(), self.uKey.get())
       attempSignup = api().registerCustomer(data, 2)
       print("attempt register is ", attempSignup)
       if(not attempSignup):
@@ -330,8 +347,8 @@ class Interface:
         self.customer = data
         self.accountNum = attempSignup        
         self.signupFrame.grid_remove()
-        self.operationsPart()      
-        self.stage = "operations"
+        self.newCustomerPart()      
+        self.stage = "newcustomer"
 
   def signupPart(self): 
     """
@@ -366,13 +383,61 @@ class Interface:
     self.welSty = Style()
     self.welSty.configure("F.TFrame", font=('Helvetica', 10, 'bold'))
     self.transFrame.grid(sticky='nsew')
-    Label(self.transFrame, text="Cash Withdrawal").grid(row=0,column=0)
-    Label(self.transFrame, text="Transfer").grid(row=0,column=1)
-    Label(self.transFrame, text="Transfer").grid(row=1,column=0)
-    Label(self.transFrame, text="Balance inquiry").grid(row=1,column=1)
-    Label(self.transFrame, text="Bill yayment").grid(row=2,column=0)
-    Label(self.transFrame, text="Donation/Others").grid(row=2,column=1)
+    Label(self.transFrame, text="Cash Withdrawal", style='W.TLabel', anchor=W).grid(row=1,column=0, ipady=13, sticky='nsew')
+    Label(self.transFrame, text="Transfer", style='W.TLabel',  anchor=E).grid(row=1,column=1, ipady=13, sticky='nsew')
+    Label(self.transFrame, text="Card settings", style='W.TLabel',  anchor=W).grid(row=2,column=0, ipady=13, sticky='nsew')
+    Label(self.transFrame, text="Balance inquiry", style='W.TLabel',  anchor=E).grid(row=2,column=1, ipady=13,  sticky='nsew')
+    Label(self.transFrame, text="Bill yayment", style='W.TLabel',  anchor=W).grid(row=3,column=0, ipady=13, sticky='nsew')
+    Label(self.transFrame, text="Donation/Others", style='W.TLabel',  anchor=E).grid(row=3,column=1, ipady=13, sticky='nsew')
     
+  def newCustomerPart(self):
+
+    self.newCustomerFrame = Frame(self.screen)
+    self.newCustomerFrame.grid()
+
+    Label(self.newCustomerFrame, text=f"\t Congratulations {self.customer[0]}!!\n\
+    Your account registration was successful with registration \n\
+    bonus of #20,000 and your account number is {self.accountNum} \
+      ", style='Log.TLabel', anchor=CENTER )\
+    .grid(row=0, column=0, columnspan=2, )
+    Label(self.newCustomerFrame, text='Back', style='W.TLabel', anchor=W).grid(row=1, column=0, sticky='nsew')
+    Label(self.newCustomerFrame, text='Continue', style='W.TLabel', anchor=E).grid(row=1, column=1, sticky='nsew')
+
+  def withdrawPart(self):
+    self.withdrawFrame = Frame(self.screen)
+    self.withdrawFrame.grid()
+
+    Label(self.withdrawFrame, text="1000", style='W.TLabel', anchor=W).grid(row=0,column=0, ipady=13, sticky='nsew')
+    Label(self.withdrawFrame, text="2000", style='W.TLabel',  anchor=E).grid(row=0,column=1, ipady=13, sticky='nsew')
+    Label(self.withdrawFrame, text="5000", style='W.TLabel',  anchor=W).grid(row=1,column=0, ipady=13, sticky='nsew')
+    Label(self.withdrawFrame, text="10,000", style='W.TLabel',  anchor=E).grid(row=1,column=1, ipady=13,  sticky='nsew')
+    Label(self.withdrawFrame, text="20,000", style='W.TLabel',  anchor=W).grid(row=2,column=0, ipady=13, sticky='nsew')
+    Label(self.withdrawFrame, text="50,000", style='W.TLabel',  anchor=E).grid(row=2,column=1, ipady=13, sticky='nsew')
+    Label(self.withdrawFrame, text="100,000", style='W.TLabel',  anchor=W).grid(row=3,column=0, ipady=13, sticky='nsew')
+    Label(self.withdrawFrame, text="Other", style='W.TLabel',  anchor=E).grid(row=3,column=1, ipady=13, sticky='nsew')
+
+  def otherWithdrawPart(self):
+    self.otherWithdrawFrame = Frame(self.screen)
+    self.otherWithdrawFrame.grid()
+    Label(self.otherWithdrawFrame, text="Enter amount", style='W.TLabel', anchor=W).grid(row=0,column=0, ipady=13, sticky='nsew')
+    self.otherAmount = Entry(self.otherWithdrawFrame, textvariable=self.uKey)
+    self.otherAmount.grid(row=0, column=1,sticky="ew")
+    self.otherAmount.bind('<FocusOut>', self.validateAmount)
+    Label(self.otherWithdrawFrame, text="Back", style='W.TLabel',  anchor=W).grid(row=2,column=0, ipady=13, sticky='nsew')
+    Label(self.otherWithdrawFrame, text="Continue", style='W.TLabel',  anchor=E).grid(row=2,column=1, ipady=13,  sticky='nsew')
+
+  def validateAmount(self, event):
+    pass
+
+  def postOperationPart(self):
+    self.postOperationFrame = Frame(self.screen) 
+    self.postOperationFrame.grid()
+
+    Label(self.postOperationFrame, textvariable=self.postOperationMessage, style='W.TLabel', anchor=CENTER)\
+      .grid(row=0,column=0, columnspan=2, ipady=13, sticky='nsew')
+    Label(self.postOperationFrame, text="Log out", style='W.TLabel',  anchor=W).grid(row=1,column=0, ipady=13, sticky='nsew')
+    Label(self.postOperationFrame, text="Perform another operation", style='W.TLabel',  anchor=E).grid(row=1,column=1, ipady=13,  sticky='nsew')
+
 
   def start(self):
     self.leftButtonsSection()

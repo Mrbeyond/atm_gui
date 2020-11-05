@@ -24,5 +24,13 @@ class Validators:
       return False
     else:
       return key.group()
-
+      
+  def passamount(data):
+    """
+      Amount verifier with isnumeric
+    """
+    if(data.isnumeric()):
+      return data
+    else:
+      return False
 
