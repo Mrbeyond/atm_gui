@@ -34,3 +34,13 @@ class Validators:
     else:
       return False
 
+  def passAccountNum(data):
+    """
+      Amount verifier with isnumeric
+    """
+    if(data.isnumeric() and len(data) == 10):
+      return data
+    else:
+      return False
+
+

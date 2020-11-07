@@ -101,10 +101,12 @@ class BankingBasic:
                 %s, %s, %s, %s, %s)", (data))  
             self.tabs.commit()
             print('Transaction was posted')
+            return True
         except DB.Error as err:
             print(f"There is error and the error is \n {err}")
-        finally:
-            pass
+            return False
+        # finally:
+        #     pass
             
             #closing database connection.
             # if(self.tabs.is_connected()):
@@ -131,9 +133,20 @@ class BankingBasic:
             self.createAccountTable('accounts')
             
             cursor.execute("INSERT INTO `accounts` (`type`, `customer`, `accountNumber` ) VALUES (%s, %s, %s) ", (2, customerId, accNum ))
-            self.tabs.commit()
-            print(f"\n \33[4m\33[32m Welcome {data[0]}! You have successfully registered and your account number is {accNum} \33[0m \n")
-            return accNum
+            lastId = cursor.lastrowid
+            postData= (customerId, 0, "Deposit", "Initial bonus", 20000)
+            post = self.postTransaction(postData)
+            if(not post):
+                self.tabs.rollback()
+                return False
+            else:
+                cursor.execute("SELECT * FROM `customers` WHERE id=%s", (customerId,))
+                customer = cursor.fetchall()
+                customer= customer[0]+(accNum,)
+                print(customer, " is customer")
+                self.tabs.commit()
+                print(f"\n \33[4m\33[32m Welcome {data[0]}! You have successfully registered and your account number is {accNum} \33[0m \n")
+                return customer
         except DB.Error as err:
             print(f"\n \33[31m There is error and the error is: \n {err} \33[0m \n")
             self.tabs.rollback()
@@ -184,17 +197,15 @@ class BankingBasic:
                 else:
                     balance = current - data[1]
                     cursor.execute("UPDATE `accounts` SET `balance` = %s WHERE `customer`= %s", (balance, data[0]))
-                    
+                    postData= (data[0], current, "Withdrawal", f"Debited by {data[1]}", balance)
+                    post = self.postTransaction(postData)
+                    print(post)
+                    self.tabs.commit()
                     print(cursor , 'done')
+                    return f"Your operation was successful \n Your account balance is #{balance}"
             else:
                 print('wrong')
                 return False
-            # allRecords =cursor.fetchall()
-            # print(f'\n\33[34m all is \n {allRecords} \33[0m\n')
-            # if(len(allRecords) > 0):
-            #   return allRecords[0]
-            # else:
-            #   return False
         except DB.Error as err:
             print(f"There is error and the error is \n {err}")
             self.tabs.rollback()
@@ -206,6 +217,58 @@ class BankingBasic:
                 # self.tabs.close()
                 print("\n\33[33m connection is closed \33[0m\n")
 
+    def transfer(self, data):
+        try:
+            cursor = self.tabs.cursor()
+            cursor. execute("SELECT `balance` FROM `accounts` WHERE `customer` = %s ", (data[0],))
+            
+            result = cursor.fetchall()
+            if(len(result) > 0):
+                current = result[0][0]
+
+                if(current - data[1] < 0):
+                    print('insufficient_balance')
+                    return 'insufficient_balance'
+                else:
+                    balance = current - data[1]
+                    cursor.execute("UPDATE `accounts` SET `balance` = %s WHERE `customer`= %s", (balance, data[0]))
+                    postData= (data[0], current, "Transefer", f"Transefer of {data[1]} made to {data[2]}", balance)
+                    post = self.postTransaction(postData)
+                    print(post)
+                    self.tabs.commit()
+                    print(cursor , 'done')
+                    return f"Your operation was successful \n Your account balance is #{balance}"
+            else:
+                print('wrong')
+                return False
+        except DB.Error as err:
+            print(f"There is error and the error is \n {err}")
+            self.tabs.rollback()
+            return False
+        finally:            
+            #closing database connection.
+            if(self.tabs.is_connected()):
+                cursor.close()
+                # self.tabs.close()
+                print("\n\33[33m connection is closed \33[0m\n")
+
+    def checkBalance(self, data):
+        try:
+            cursor = self.tabs.cursor()
+            cursor. execute("SELECT `balance` FROM `accounts` WHERE `customer` = %s ", (data[0],))            
+            result = cursor.fetchall()
+            if(len(result) > 0):
+                current = result[0][0]
+                print(current)
+                return f"Your account balance is #{current}"
+            else:
+                print('wrong')
+                return False
+        except DB.Error as err:
+            print(f"There is error and the error is \n {err}")
+            return False
+
+
 
 mockCustomer = ('beyond', 'Beyond', '12345678')
 uses = ('beyond', '12345678')
@@ -213,6 +276,10 @@ uses = ('beyond', '12345678')
 # BankingBasic().registerCustomer( mockCustomer,2)
 # BankingBasic().postTransaction((1,0, "Deposit", "Creditted by 5000 ", 5000))
 # print(BankingBasic().login(uses))
-BankingBasic().withdraw((1,500))
+data = (1,500)
+# BankingBasic().withdraw(data)
+# data = (1,500, 1234567890)
+# BankingBasic().transfer(data)
+# BankingBasic().checkBalance(data)
 
 

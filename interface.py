@@ -27,9 +27,16 @@ class Interface:
     self.ulName= StringVar()
     self.uKey = StringVar()
     self.postOperationMessage = StringVar()
+    self.wAmount = StringVar()
+    self.transAccount = StringVar()
+    self.transAmount = StringVar()
+    #Other Amount Error oAError
+    self.oAError = True
     self.isUFNError = True
     self.isULNError = True
     self.isUKError = True
+    self.isTACError = True
+    self.isTAMError = True
     
     self.ScreenSty = Style()
     self.ScreenSty.configure("SCR.TFrame", bd=100, relief="sunken")
@@ -73,7 +80,7 @@ class Interface:
     self.Lsty.configure("R.TButton", font=('Helvetica', 10, 'bold'))
     self.rKeys = Frame(self.main)
     self.rKeys.grid(row=0, column=10)
-    self.rk1 = Button(self.rKeys, text="<", style="R.TButton")
+    self.rk1 = Button(self.rKeys, text="<", style="R.TButton", comman=self.rOne)
     self.rk1.grid(row=0, column=0, pady=4, ipady=10);
     self.rk2 = Button(self.rKeys, text="<", style="R.TButton", command=self.rTwo)
     self.rk2.grid(row=1, column=0, pady=4, ipady=10);
@@ -105,7 +112,15 @@ class Interface:
     self.initLoginLabel.grid(row=1, column=1,  sticky='nsew')
 
   def rOne(self):
-    pass
+    if(self.stage=='mainwithdraw'):
+      self.withdrawFrame.grid_remove()
+      self.withdrawNow(20000)
+    elif(self.stage == 'operations'):
+      self.transFrame.grid_remove()
+      self.transferPart()
+      self.stage = 'transfer'
+    else:
+      pass
 
   def rTwo(self):
     if(self.stage == "default" and self.stage != 'login'):
@@ -116,17 +131,48 @@ class Interface:
       self.newCustomerFrame.grid_remove()
       self.operationsPart()
       self.stage = 'operations'
-
+    elif(self.stage=='mainwithdraw'):
+      self.withdrawFrame.grid_remove()
+      self.withdrawNow(50000)
+    elif(self.stage == "postoperation"):
+      self.postOperationFrame.grid_remove()
+      self.operationsPart()
+      self.stage = "operations" 
+    elif(self.stage == "operations"):
+      self.transFrame.grid_remove()
+      self.checkBalance() 
     else:
       pass
   
   def rThree(self):
     if(self.stage == "login"):
       self.submitLogin()
+    elif(self.stage=='mainwithdraw'):
+      self.withdrawFrame.grid_remove()
+      self.withdrawNow(100000)
+    elif(self.stage=='otherwithdraw'):
+      if(not self.oAError):
+        self.otherWithdrawFrame.grid_remove()
+        self.withdrawNow(int(self.wAmount.get()))
+    elif(self.stage == "postoperation"):
+      self.postOperationFrame.grid_remove()
+      self.operationsPart()
+      self.stage = "operations" 
+    elif(self.stage=='transfer'):
+      self.transferFrame.grid_remove()
+      self.transferNow() 
+    else:
+      pass
 
   def rFour(self):
     if(self.stage == "signup"):
       self.submitSignup()
+    elif(self.stage=='mainwithdraw'):
+      self.withdrawFrame.grid_remove()
+      self.otherWithdrawPart()
+      self.stage = "otherwithdraw"
+    else:
+      pass
 
   def lOne(self):
     if(self.stage == 'operations'):
@@ -134,7 +180,8 @@ class Interface:
       self.withdrawPart()
       self.stage="mainwithdraw"
     elif(self.stage=='mainwithdraw'):
-      pass
+      self.withdrawFrame.grid_remove()
+      self.withdrawNow(1000)
     else:
       pass
 
@@ -147,7 +194,9 @@ class Interface:
       self.newCustomerFrame.grid_remove()
       self.welcomePart()
       self.stage = 'default'
-    else:
+    elif(self.stage=='mainwithdraw'):
+      self.withdrawFrame.grid_remove()
+      self.withdrawNow(2000)
       pass
     
 
@@ -157,6 +206,27 @@ class Interface:
       self.loginFrame.grid_remove()
       self.welcomePart()
       self.stage = "default"
+    elif(self.stage=='mainwithdraw'):
+      self.withdrawFrame.grid_remove()
+      self.withdrawNow(5000)
+    elif(self.stage=='otherwithdraw'):
+      self.otherWithdrawFrame.grid_remove()
+      self.operationsPart()
+      self.stage = "operations"
+    elif(self.stage == "postoperation"):
+      self.postOperationFrame.grid_remove()
+      self.welcomePart()
+      self.customer = None
+      self.accountNum = None
+      self.lName.set("")
+      self.lKey.set("")
+      self.transAmount.set("")
+      self.transAccount.set("")
+      self.stage = "default"
+    elif(self.stage=='transfer'):
+      self.transferFrame.grid_remove()
+      self.operationsPart()
+      self.stage = 'operations' 
     else:
       pass
 
@@ -165,6 +235,9 @@ class Interface:
       self.signupFrame.grid_remove()
       self.welcomePart()
       self.stage = "default"
+    elif(self.stage=='mainwithdraw'):
+      self.withdrawFrame.grid_remove()
+      self.withdrawNow(10000)
 
     else:
       pass
@@ -344,11 +417,12 @@ class Interface:
         self.signupError.grid(row=3, column=0, columnspan=2)
         self.signupError['text']= "Oop, something went wrong, please try again"
       else:
-        self.customer = data
-        self.accountNum = attempSignup        
+        self.customer = attempSignup
+        self.accountNum = attempSignup[len(attempSignup)-1]        
         self.signupFrame.grid_remove()
         self.newCustomerPart()      
         self.stage = "newcustomer"
+        print(self.accountNum)
 
   def signupPart(self): 
     """
@@ -363,6 +437,7 @@ class Interface:
     Label(self.signupFrame, text="First name", style="Log.TLabel").grid(row=0, column=0, ipady=15)
     self.signupFName = Entry(self.signupFrame, textvariable=self.ufName)
     self.signupFName.grid(row=0, column=1, sticky="ew")
+    self.signupFName.focus_set()
     self.signupFName.bind('<FocusOut>', self.signupFNameValidator)
 
     Label(self.signupFrame, text="Last name", style="Log.TLabel").grid(row=1, column=0, ipady=15)
@@ -395,7 +470,7 @@ class Interface:
     self.newCustomerFrame = Frame(self.screen)
     self.newCustomerFrame.grid()
 
-    Label(self.newCustomerFrame, text=f"\t Congratulations {self.customer[0]}!!\n\
+    Label(self.newCustomerFrame, text=f"\t Congratulations {self.customer[0], }!!\n\
     Your account registration was successful with registration \n\
     bonus of #20,000 and your account number is {self.accountNum} \
       ", style='Log.TLabel', anchor=CENTER )\
@@ -408,35 +483,159 @@ class Interface:
     self.withdrawFrame.grid()
 
     Label(self.withdrawFrame, text="1000", style='W.TLabel', anchor=W).grid(row=0,column=0, ipady=13, sticky='nsew')
-    Label(self.withdrawFrame, text="2000", style='W.TLabel',  anchor=E).grid(row=0,column=1, ipady=13, sticky='nsew')
-    Label(self.withdrawFrame, text="5000", style='W.TLabel',  anchor=W).grid(row=1,column=0, ipady=13, sticky='nsew')
-    Label(self.withdrawFrame, text="10,000", style='W.TLabel',  anchor=E).grid(row=1,column=1, ipady=13,  sticky='nsew')
-    Label(self.withdrawFrame, text="20,000", style='W.TLabel',  anchor=W).grid(row=2,column=0, ipady=13, sticky='nsew')
-    Label(self.withdrawFrame, text="50,000", style='W.TLabel',  anchor=E).grid(row=2,column=1, ipady=13, sticky='nsew')
-    Label(self.withdrawFrame, text="100,000", style='W.TLabel',  anchor=W).grid(row=3,column=0, ipady=13, sticky='nsew')
+    Label(self.withdrawFrame, text="20,000", style='W.TLabel',  anchor=E).grid(row=0,column=1, ipady=13, sticky='nsew')
+    Label(self.withdrawFrame, text="2000", style='W.TLabel',  anchor=W).grid(row=1,column=0, ipady=13, sticky='nsew')
+    Label(self.withdrawFrame, text="50,000", style='W.TLabel',  anchor=E).grid(row=1,column=1, ipady=13,  sticky='nsew')
+    Label(self.withdrawFrame, text="5,000", style='W.TLabel',  anchor=W).grid(row=2,column=0, ipady=13, sticky='nsew')
+    Label(self.withdrawFrame, text="100,000", style='W.TLabel',  anchor=E).grid(row=2,column=1, ipady=13, sticky='nsew')
+    Label(self.withdrawFrame, text="10,000", style='W.TLabel',  anchor=W).grid(row=3,column=0, ipady=13, sticky='nsew')
     Label(self.withdrawFrame, text="Other", style='W.TLabel',  anchor=E).grid(row=3,column=1, ipady=13, sticky='nsew')
 
   def otherWithdrawPart(self):
     self.otherWithdrawFrame = Frame(self.screen)
     self.otherWithdrawFrame.grid()
-    Label(self.otherWithdrawFrame, text="Enter amount", style='W.TLabel', anchor=W).grid(row=0,column=0, ipady=13, sticky='nsew')
-    self.otherAmount = Entry(self.otherWithdrawFrame, textvariable=self.uKey)
+    Label(self.otherWithdrawFrame, text="Enter amount  ", style='W.TLabel', anchor=W).grid(row=0,column=0, ipady=15, sticky='nsew')
+    self.otherAmount = Entry(self.otherWithdrawFrame, textvariable=self.wAmount)
     self.otherAmount.grid(row=0, column=1,sticky="ew")
+    self.otherAmount.focus_set()
     self.otherAmount.bind('<FocusOut>', self.validateAmount)
-    Label(self.otherWithdrawFrame, text="Back", style='W.TLabel',  anchor=W).grid(row=2,column=0, ipady=13, sticky='nsew')
-    Label(self.otherWithdrawFrame, text="Continue", style='W.TLabel',  anchor=E).grid(row=2,column=1, ipady=13,  sticky='nsew')
+    Label(self.otherWithdrawFrame, text="Back", style='W.TLabel', anchor=W).grid(row=2,column=0, pady=(55,0), sticky='nsew')
+    Label(self.otherWithdrawFrame, text="Continue", style='W.TLabel', anchor=E).grid(row=2,column=1, pady=(55,0),  sticky='nsew')
+
+  def wAmountErrorPart(self):
+    self.wAmountErrorLabel = Label(self.otherWithdrawFrame, anchor=W, style="Error.TLabel")
+    self.wAmountErrorLabel.grid(row=1, column = 1, columnspan=2, sticky="nsew")
+    self.wAmountErrorLabel['text'] = "Only numbers are required "
 
   def validateAmount(self, event):
-    pass
+    valid = vld.passamount(self.wAmount.get())
+    if(not valid):
+      self.wAmountErrorPart()
+      self.oAError = True
+    else:
+      try:
+        if(self.oAError):
+          self.oAError = False
+          self.wAmountErrorLabel.grid_remove()
+      except:
+        pass
+
+  def withdrawNow(self, amount):
+    data = (self.customer[0], amount)
+    # print(type(data))
+    response = api().withdraw(data)
+    if( not response):
+      self.postOperationMessage.set("Something went wrong, Please try again")
+    elif(response == "insufficient_balance"):
+      self.postOperationMessage.set("You have insufficient balance")
+    else:
+      self.postOperationMessage.set(response)
+    self.postOperationPart()
+    self.stage = 'postoperation'
 
   def postOperationPart(self):
     self.postOperationFrame = Frame(self.screen) 
     self.postOperationFrame.grid()
 
-    Label(self.postOperationFrame, textvariable=self.postOperationMessage, style='W.TLabel', anchor=CENTER)\
-      .grid(row=0,column=0, columnspan=2, ipady=13, sticky='nsew')
-    Label(self.postOperationFrame, text="Log out", style='W.TLabel',  anchor=W).grid(row=1,column=0, ipady=13, sticky='nsew')
-    Label(self.postOperationFrame, text="Perform another operation", style='W.TLabel',  anchor=E).grid(row=1,column=1, ipady=13,  sticky='nsew')
+    self.Lsty = Style()
+    self.Lsty.configure("M.TLabel", font=('Helvetica', 10, 'bold'))
+    self.Lsty.configure("P.TLabel", font=('Helvetica', 15, 'bold'))
+
+    Label(self.postOperationFrame, textvariable=self.postOperationMessage, style='M.TLabel', anchor=CENTER)\
+      .grid(row=0,column=0, rowspan=2, columnspan=2, ipady=13, sticky='nsew')
+    Label(self.postOperationFrame, text="Exit", style='P.TLabel',  anchor=W).grid(row=2,column=0, pady=(63,0), sticky='nsew')
+    Label(self.postOperationFrame, text="New operation", style='P.TLabel', anchor=E).grid(row=2,column=1, pady=(63,0), sticky='nsew')
+
+  def transferPart(self):
+    self.transferFrame = Frame(self.screen)
+    self.transferFrame.grid()
+
+    Label(self.transferFrame, text="Account number",  style="Log.TLabel")\
+      .grid(row=0, column=0,  ipady=15)
+    self.transAccountNumBox = Entry(self.transferFrame, textvariable=self.transAccount)
+    self.transAccountNumBox.grid(row=0, column=1, sticky="ew")
+    self.transAccountNumBox.focus_set()
+    self.transAccountNumBox.bind("<FocusOut>", self.transferAcountValidator)
+
+    Label(self.transferFrame, text="Amount", style="Log.TLabel").grid(row=1, column=0, ipady=15)
+    self.transAmountBox = Entry(self.transferFrame, textvariable=self.transAmount)
+    self.transAmountBox.grid(row=1, column=1, sticky="ew")
+    self.transAmountBox.bind("<FocusOut>", self.tansferAmountValidator)
+
+    Label(self.transferFrame, text="Back", style="Log.TLabel")\
+      .grid(row=3, column=0, sticky='nsew')
+    Label(self.transferFrame, text="Continue", style="Log.TLabel", anchor=E)\
+      .grid(row=3, column=1, ipady=10,sticky='nsew')
+
+  def transferAcountValidator(self, event):
+    """"
+      The validator method for login name
+    """   
+    # This validator value holder for login name  
+    valid = vld.passAccountNum(self.transAccount.get())
+   
+    if not(valid):
+      self.isTACError = True
+      print(3, self.isTACError)
+      self.transferErrorMessage = Label(self.transferFrame, style="Error.TLabel")
+      self.transferErrorMessage.grid(row=2, column=0, columnspan=2)
+      self.transferErrorMessage['text']= "Ten numbers are required"
+    else:
+      print(4)
+      try:
+        if (self.isTACError):
+          self.transferErrorMessage.grid_remove()
+        self.isTACError = False
+      except:
+        # print(NameError)
+        pass
+
+
+  def tansferAmountValidator(self, event):
+    """"
+      The validator method for login passkey
+    """
+    print(self.isTACError)
+    if not (self.isTACError):     
+      valid = vld.passamount(self.transAmount.get())
+      if not(valid):
+        print(1)
+        self.transferErrorMessage = Label(self.transferFrame, style="Error.TLabel")
+        self.transferErrorMessage.grid(row=2, column=0, columnspan=2)
+        self.transferErrorMessage['text']= "Only numbers are required"
+        self.isTAMError = True
+      else:
+        print(2)
+        try:
+          if (self.isTAMError):
+            self.isTAMError = False
+            self.transferErrorMessage.grid_remove()
+        except :
+          pass
+  
+  def transferNow(self):
+    if( vld.passAccountNum(self.transAccount.get()) != False and vld.passamount(self.transAmount.get()) != False):
+      data = (self.customer[0], int(self.transAmount.get()), self.transAccount.get() )
+      response = api().transfer(data)
+      if( not response):
+        self.postOperationMessage.set("Something went wrong, Please try again")
+      elif(response == "insufficient_balance"):
+        self.postOperationMessage.set("You have insufficient balance")
+      else:
+        self.postOperationMessage.set(response)
+      self.postOperationPart()
+      self.stage = 'postoperation'
+
+  def checkBalance(self):
+    response = api().checkBalance((self.customer[0],))
+    if(not response):
+      self.postOperationMessage.set("Something went wrong, Please try again")
+    else:
+      self.postOperationMessage.set(response)
+    self.postOperationPart()
+    self.stage = 'postoperation'
+
+
 
 
   def start(self):
@@ -445,6 +644,7 @@ class Interface:
     self.welcomePart()
     # self.main.geometry("500x500")
     self.main.mainloop()
+    
 
 
 Interface().start()
